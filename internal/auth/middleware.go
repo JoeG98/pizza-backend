@@ -1,11 +1,16 @@
 package auth
 
 import (
+	"log"
 	"strings"
 
+	"github.com/JoeG98/pizza-backend/internal/database"
+	"github.com/JoeG98/pizza-backend/internal/models"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
+
+var DB *database.Database
 
 func JWTMiddleware(c *fiber.Ctx) error {
 	authHeader := c.Get("Authorization")
@@ -41,7 +46,18 @@ func JWTMiddleware(c *fiber.Ctx) error {
 	// Extract user id
 
 	claims := token.Claims.(jwt.MapClaims)
-	c.Locals("userID", claims["sub"])
+	userID := claims["sub"]
+
+	var user models.User
+
+	if err := DB.DB.First(&user, "id = ?", userID).Error; err != nil {
+		log.Println(err)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "user no longer exists",
+		})
+	}
+
+	c.Locals("user", user)
 
 	return c.Next()
 }

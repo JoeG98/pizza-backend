@@ -21,7 +21,17 @@ func RegisterAuthRoutes(app *fiber.App, service *auth.Service) {
 			})
 		}
 
-		err := service.CreateUser(input.Username, input.Password)
+		if input.Role == "" {
+			input.Role = "customer"
+		}
+
+		if input.Role != "customer" && input.Role != "admin" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "role must be 'customer' or 'admin'",
+			})
+		}
+
+		err := service.CreateUser(input.Username, input.Password, input.Role)
 
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{

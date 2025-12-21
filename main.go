@@ -16,6 +16,8 @@ func main() {
 	// Connect DB
 	db := database.Connect()
 
+	auth.DB = db
+
 	orderService := orders.OrderService(db)
 	authService := auth.AuthService(db)
 

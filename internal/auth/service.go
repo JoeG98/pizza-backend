@@ -18,7 +18,7 @@ func AuthService(db *database.Database) *Service {
 	}
 }
 
-func (s *Service) CreateUser(username string, password string) error {
+func (s *Service) CreateUser(username string, password string, role string) error {
 	// check if username exists
 	var existing models.User
 	err := s.db.DB.Where("username = ?", username).First(&existing).Error
@@ -30,6 +30,7 @@ func (s *Service) CreateUser(username string, password string) error {
 	user := models.User{
 		Username: username,
 		Password: password,
+		Role:     role,
 	}
 
 	return s.db.DB.Create(&user).Error
