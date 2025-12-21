@@ -5,6 +5,7 @@ import (
 
 	"github.com/JoeG98/pizza-backend/internal/database"
 	"github.com/JoeG98/pizza-backend/internal/models"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Service struct {
@@ -32,4 +33,24 @@ func (s *Service) CreateUser(username string, password string) error {
 	}
 
 	return s.db.DB.Create(&user).Error
+}
+
+func (s *Service) AuthenticateUser(username string, password string) (*models.User, error) {
+	var user models.User
+
+	// Find User
+
+	err := s.db.DB.Where("username = ?", username).First(&user).Error
+
+	if err != nil {
+		return nil, errors.New("invalid username or password")
+	}
+
+	// compare password
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return nil, errors.New("invalid username or password")
+	}
+
+	return &user, nil
 }

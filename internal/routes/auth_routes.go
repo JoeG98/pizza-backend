@@ -33,4 +33,34 @@ func RegisterAuthRoutes(app *fiber.App, service *auth.Service) {
 			"message": "user created",
 		})
 	})
+
+	app.Post("/login", func(c *fiber.Ctx) error {
+		var input auth.LoginRequest
+
+		if err := c.BodyParser(&input); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Invalid body request",
+			})
+		}
+
+		user, err := service.AuthenticateUser(input.Username, input.Password)
+
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Invalid username or password",
+			})
+		}
+
+		token, err := auth.GenerateJWT(user.ID)
+
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "failed to sign token",
+			})
+		}
+
+		return c.JSON(fiber.Map{
+			"token": token,
+		})
+	})
 }
