@@ -37,6 +37,7 @@ func Connect() *Database {
 	if err := db.AutoMigrate(
 		&models.Order{},
 		&models.OrderItem{},
+		&models.User{},
 	); err != nil {
 		log.Fatal("❌ Failed to run migrations:", err)
 	}
