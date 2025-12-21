@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/JoeG98/pizza-backend/internal/auth"
+	"github.com/JoeG98/pizza-backend/internal/middleware"
 	"github.com/JoeG98/pizza-backend/internal/orders"
 	"github.com/gofiber/fiber/v2"
 )
@@ -58,7 +59,7 @@ func RegisterOrderRoutes(app *fiber.App, service *orders.Service) {
 		return c.JSON(orders)
 	})
 
-	app.Patch("/orders/:id/status", auth.JWTMiddleware, auth.RequireAdmin, func(c *fiber.Ctx) error {
+	app.Patch("/orders/:id/status", auth.JWTMiddleware, middleware.AccessLog, auth.RequireAdmin, func(c *fiber.Ctx) error {
 		id := c.Params("id")
 
 		var input orders.UpdateOrderStatusRequest
@@ -81,7 +82,7 @@ func RegisterOrderRoutes(app *fiber.App, service *orders.Service) {
 		return c.JSON(order)
 	})
 
-	app.Delete("/orders/:id", auth.JWTMiddleware, auth.RequireAdmin, func(c *fiber.Ctx) error {
+	app.Delete("/orders/:id", auth.JWTMiddleware, middleware.AccessLog, auth.RequireAdmin, func(c *fiber.Ctx) error {
 		id := c.Params("id")
 
 		err := service.DeleteOrder(id)

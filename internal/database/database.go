@@ -38,6 +38,7 @@ func Connect() *Database {
 		&models.Order{},
 		&models.OrderItem{},
 		&models.User{},
+		&models.RefreshToken{},
 	); err != nil {
 		log.Fatal("❌ Failed to run migrations:", err)
 	}
