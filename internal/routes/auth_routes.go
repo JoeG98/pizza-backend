@@ -10,7 +10,7 @@ import (
 )
 
 func RegisterAuthRoutes(app *fiber.App, service *auth.Service) {
-	app.Post("/signup", func(c *fiber.Ctx) error {
+	app.Post("/api/signup", func(c *fiber.Ctx) error {
 		var input auth.SignupRequest
 
 		if err := c.BodyParser(&input); err != nil {
@@ -48,7 +48,7 @@ func RegisterAuthRoutes(app *fiber.App, service *auth.Service) {
 		})
 	})
 
-	app.Post("/login", func(c *fiber.Ctx) error {
+	app.Post("/api/login", func(c *fiber.Ctx) error {
 		var input auth.LoginRequest
 
 		if err := c.BodyParser(&input); err != nil {
@@ -84,7 +84,7 @@ func RegisterAuthRoutes(app *fiber.App, service *auth.Service) {
 		})
 	})
 
-	app.Post("/refresh", func(c *fiber.Ctx) error {
+	app.Post("/api/refresh", func(c *fiber.Ctx) error {
 
 		// Extract refresh token from Authorization header
 		authHeader := c.Get("Authorization")
@@ -130,6 +130,22 @@ func RegisterAuthRoutes(app *fiber.App, service *auth.Service) {
 
 		return c.JSON(fiber.Map{
 			"token": newToken,
+		})
+	})
+
+	app.Get("/api/me", auth.JWTMiddleware, func(c *fiber.Ctx) error {
+
+		user, ok := c.Locals("user").(models.User)
+		if !ok {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "unauthorized",
+			})
+		}
+
+		return c.JSON(fiber.Map{
+			"id":       user.ID,
+			"username": user.Username,
+			"role":     user.Role,
 		})
 	})
 

@@ -1,4 +1,7 @@
+// sse/hub.go
 package sse
+
+import "fmt"
 
 // Client channel type
 type Client chan string
@@ -23,27 +26,35 @@ func NewHub() *Hub {
 
 // Run processes client registration, removal, and messages
 func (h *Hub) Run() {
+	fmt.Println("🚀 Hub started")
 	for {
 		select {
-
-		// add new client
+		// Add new client
 		case client := <-h.Register:
 			h.Clients[client] = true
+			fmt.Printf("✅ Client registered. Total clients: %d\n", len(h.Clients))
 
-		// remove disconnected client
+		// Remove disconnected client
 		case client := <-h.Unregister:
 			if _, ok := h.Clients[client]; ok {
 				delete(h.Clients, client)
+				close(client) // Close the channel
+				fmt.Printf("❌ Client unregistered. Total clients: %d\n", len(h.Clients))
 			}
 
-		// incoming SSE message
+		// Broadcast message to all clients
 		case msg := <-h.Broadcast:
+			fmt.Printf("📢 Broadcasting to %d clients: %s\n", len(h.Clients), msg)
+
 			for client := range h.Clients {
 				select {
 				case client <- msg:
+					// Message sent successfully
 				default:
-					// prevent blocked writer
+					// Client channel is full or blocked, remove it
+					fmt.Println("⚠️ Client channel blocked, removing")
 					delete(h.Clients, client)
+					close(client)
 				}
 			}
 		}

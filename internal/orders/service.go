@@ -1,19 +1,23 @@
 package orders
 
 import (
+	"encoding/json"
 	"errors"
 
 	"github.com/JoeG98/pizza-backend/internal/database"
 	"github.com/JoeG98/pizza-backend/internal/models"
+	"github.com/JoeG98/pizza-backend/internal/sse"
 )
 
 type Service struct {
-	db *database.Database
+	db  *database.Database
+	hub *sse.Hub
 }
 
-func OrderService(db *database.Database) *Service {
+func OrderService(db *database.Database, hub *sse.Hub) *Service {
 	return &Service{
-		db: db,
+		db:  db,
+		hub: hub,
 	}
 }
 
@@ -57,7 +61,7 @@ func (s *Service) CreateOrder(input CreateOrderRequest) (*models.Order, error) {
 
 	// map request to DB model
 	order := models.Order{
-		Status:       "Order placed",
+		Status:       models.OrderStatuses[0],
 		CustomerName: input.CustomerName,
 		Phone:        input.Phone,
 		Address:      input.Address,
@@ -75,6 +79,17 @@ func (s *Service) CreateOrder(input CreateOrderRequest) (*models.Order, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	event := sse.Event{
+		Type: "order_created",
+		Data: order,
+	}
+
+	payload, err := json.Marshal(event)
+
+	if err == nil {
+		s.hub.Broadcast <- string(payload)
 	}
 
 	return &order, nil
@@ -111,8 +126,8 @@ func (s *Service) UpdateOrderStatus(id string, status string) (*models.Order, er
 
 	valid := false
 
-	for _, s2 := range models.OrderStatuses {
-		if s2 == status {
+	for _, statusOption := range models.OrderStatuses {
+		if statusOption == status {
 			valid = true
 			break
 		}
@@ -136,6 +151,17 @@ func (s *Service) UpdateOrderStatus(id string, status string) (*models.Order, er
 
 	if err := s.db.DB.Save(order).Error; err != nil {
 		return nil, err
+	}
+
+	event := sse.Event{
+		Type: "order_status_updated",
+		Data: order,
+	}
+
+	payload, err := json.Marshal(event)
+
+	if err == nil {
+		s.hub.Broadcast <- string(payload)
 	}
 
 	return order, nil

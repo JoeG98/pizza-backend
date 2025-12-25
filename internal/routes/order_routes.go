@@ -8,7 +8,7 @@ import (
 )
 
 func RegisterOrderRoutes(app *fiber.App, service *orders.Service) {
-	app.Post("/orders", func(c *fiber.Ctx) error {
+	app.Post("/api/orders", func(c *fiber.Ctx) error {
 		var input orders.CreateOrderRequest
 
 		// Parse json
@@ -33,7 +33,7 @@ func RegisterOrderRoutes(app *fiber.App, service *orders.Service) {
 		return c.Status(fiber.StatusCreated).JSON(order)
 	})
 
-	app.Get("/orders/:id", func(c *fiber.Ctx) error {
+	app.Get("/api/orders/:id", func(c *fiber.Ctx) error {
 		id := c.Params("id")
 
 		order, err := service.GetOrder(id)
@@ -47,7 +47,7 @@ func RegisterOrderRoutes(app *fiber.App, service *orders.Service) {
 		return c.JSON(order)
 	})
 
-	app.Get("/orders", func(c *fiber.Ctx) error {
+	app.Get("/api/orders", func(c *fiber.Ctx) error {
 		orders, err := service.GetAllOrders()
 
 		if err != nil {
@@ -59,7 +59,7 @@ func RegisterOrderRoutes(app *fiber.App, service *orders.Service) {
 		return c.JSON(orders)
 	})
 
-	app.Patch("/orders/:id/status", auth.JWTMiddleware, middleware.AccessLog, auth.RequireAdmin, func(c *fiber.Ctx) error {
+	app.Patch("/api/orders/:id/status", auth.JWTMiddleware, middleware.AccessLog, auth.RequireAdmin, func(c *fiber.Ctx) error {
 		id := c.Params("id")
 
 		var input orders.UpdateOrderStatusRequest
@@ -82,7 +82,7 @@ func RegisterOrderRoutes(app *fiber.App, service *orders.Service) {
 		return c.JSON(order)
 	})
 
-	app.Delete("/orders/:id", auth.JWTMiddleware, middleware.AccessLog, auth.RequireAdmin, func(c *fiber.Ctx) error {
+	app.Delete("/api/orders/:id", auth.JWTMiddleware, middleware.AccessLog, auth.RequireAdmin, func(c *fiber.Ctx) error {
 		id := c.Params("id")
 
 		err := service.DeleteOrder(id)

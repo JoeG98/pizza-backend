@@ -10,21 +10,15 @@ import (
 func Register(app *fiber.App, orderService *orders.Service, authService *auth.Service, hub *sse.Hub) {
 	// base health endpoint
 
-	app.Get("/health", func(c *fiber.Ctx) error {
+	app.Get("/api/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"status": "OK",
 		})
 	})
 
-	app.Get("/events/orders", hub.Handle())
-
-	// app.Get("/event/orders", func(c *fiber.Ctx) error {
-	// 	return c.JSON(fiber.Map{
-	// 		"status": "OK Good",
-	// 	})
-	// })
-
 	RegisterOrderRoutes(app, orderService)
 
 	RegisterAuthRoutes(app, authService)
+	app.Get("/api/events/orders", hub.Handle())
+	app.Get("/api/events/orders/:id", hub.HandleOrderByID())
 }

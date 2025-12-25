@@ -1,9 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"time"
-
 	"github.com/JoeG98/pizza-backend/internal/auth"
 	database "github.com/JoeG98/pizza-backend/internal/database"
 	"github.com/JoeG98/pizza-backend/internal/orders"
@@ -22,21 +19,13 @@ func main() {
 
 	auth.DB = db
 
-	orderService := orders.OrderService(db)
-	authService := auth.AuthService(db)
-
 	hub := sse.NewHub()
 	go hub.Run()
 
-	routes.Register(app, orderService, authService, hub)
+	orderService := orders.OrderService(db, hub)
+	authService := auth.AuthService(db)
 
-	go func() {
-		for {
-			time.Sleep(2 * time.Second)
-			fmt.Println("🔥 broadcasting SSE tick")
-			hub.Broadcast <- "tick from SSE"
-		}
-	}()
+	routes.Register(app, orderService, authService, hub)
 
 	app.Listen(":3000")
 }
